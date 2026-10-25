@@ -131,16 +131,31 @@ if (Test-Path $out) { Remove-Item $out -Recurse -Force }
 New-Item -ItemType Directory -Path (Join-Path $out 'driver') -Force | Out-Null
 Copy-Item $inf.FullName, $sys (Join-Path $out 'driver')
 
-# Catalog for exactly these two files.
-$inf2cat = Find-Tool 'inf2cat.exe' $packages
+# Catalog for exactly these two files. Inf2Cat is in the WDK NuGet package
+# or, failing that, in an installed Windows Kit.
 $drvOut = Join-Path $out 'driver'
+$kits = Join-Path ${env:ProgramFiles(x86)} 'Windows Kits\10\bin'
+$inf2cat = $null
+foreach ($root in $packages, $kits) {
+    if (-not $inf2cat -and (Test-Path $root)) {
+        try { $inf2cat = Find-Tool 'inf2cat.exe' $root } catch { }
+    }
+}
+if (-not $inf2cat) { throw "inf2cat.exe not found under $packages or $kits" }
+Write-Host "Inf2Cat: $inf2cat"
 & $inf2cat "/driver:$drvOut" '/os:10_VB_X64,10_CO_X64,10_NI_X64' /uselocaltime
 if ($LASTEXITCODE -ne 0) { throw "Inf2Cat failed ($LASTEXITCODE)" }
 if (-not (Test-Path (Join-Path $out 'driver\splitter.cat'))) { throw 'Inf2Cat made no splitter.cat' }
 
 # 4. Test signing
 if (-not $NoTestSign) {
-    $signtool = Find-Tool 'signtool.exe' $packages
+    $signtool = $null
+    foreach ($root in $packages, $kits) {
+        if (-not $signtool -and (Test-Path $root)) {
+            try { $signtool = Find-Tool 'signtool.exe' $root } catch { }
+        }
+    }
+    if (-not $signtool) { throw "signtool.exe not found under $packages or $kits" }
     if ($CertificatePfx) {
         $sec = ConvertTo-SecureString -String $CertificatePassword -AsPlainText -Force
         $cert = Import-PfxCertificate -FilePath $CertificatePfx -Password $sec -CertStoreLocation Cert:\CurrentUser\My
