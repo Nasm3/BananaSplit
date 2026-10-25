@@ -38,9 +38,11 @@ $version = (Get-Content (Join-Path $here '..\VERSION') -Raw).Trim()
 if ($version -notmatch '^\d+\.\d+\.\d+$') { throw "splitter/VERSION must be x.y.z, not '$version'" }
 
 function Find-Tool([string] $name, [string] $under) {
+    # Prefer x64 host tools; some (Inf2Cat) only come as x86.
     $hit = Get-ChildItem -Path $under -Recurse -Filter $name -ErrorAction SilentlyContinue |
-        Where-Object { $_.FullName -match '\\x64\\' -or $_.FullName -match '\\amd64\\' } |
-        Sort-Object FullName -Descending | Select-Object -First 1
+        Sort-Object @{ Expression = { $_.FullName -match '\\(x64|amd64)\\' }; Descending = $true },
+                    @{ Expression = { $_.FullName }; Descending = $true } |
+        Select-Object -First 1
     if (-not $hit) { throw "$name not found under $under" }
     return $hit.FullName
 }
