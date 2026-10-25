@@ -56,32 +56,34 @@ HKR,Drivers\mixer\wdmaud.drv,Driver,,wdmaud.drv
 HKR,Drivers\wave\wdmaud.drv,Description,,%SPLITTER_SA.DeviceDesc%
 HKR,Drivers\mixer\wdmaud.drv,Description,,%SPLITTER_SA.DeviceDesc%
 
-; The endpoints' numbered names (see Inc\endpoints.h).
+; The endpoints' numbered names (see Inc\endpoints.h). KS looks for a pin's
+; name in the device's software key first (Windows 10 1809 and later), so
+; nothing outside HKR is written.
 
-HKLM,%MediaCategories%\%Render1NameGUID%,Name,,%Render1Name%
-HKLM,%MediaCategories%\%Render1NameGUID%,Display,1,00,00,00,00
-HKLM,%MediaCategories%\%Capture1NameGUID%,Name,,%Capture1Name%
-HKLM,%MediaCategories%\%Capture1NameGUID%,Display,1,00,00,00,00
-HKLM,%MediaCategories%\%Render2NameGUID%,Name,,%Render2Name%
-HKLM,%MediaCategories%\%Render2NameGUID%,Display,1,00,00,00,00
-HKLM,%MediaCategories%\%Capture2NameGUID%,Name,,%Capture2Name%
-HKLM,%MediaCategories%\%Capture2NameGUID%,Display,1,00,00,00,00
-HKLM,%MediaCategories%\%Render3NameGUID%,Name,,%Render3Name%
-HKLM,%MediaCategories%\%Render3NameGUID%,Display,1,00,00,00,00
-HKLM,%MediaCategories%\%Capture3NameGUID%,Name,,%Capture3Name%
-HKLM,%MediaCategories%\%Capture3NameGUID%,Display,1,00,00,00,00
-HKLM,%MediaCategories%\%Render4NameGUID%,Name,,%Render4Name%
-HKLM,%MediaCategories%\%Render4NameGUID%,Display,1,00,00,00,00
-HKLM,%MediaCategories%\%Capture4NameGUID%,Name,,%Capture4Name%
-HKLM,%MediaCategories%\%Capture4NameGUID%,Display,1,00,00,00,00
-HKLM,%MediaCategories%\%Render5NameGUID%,Name,,%Render5Name%
-HKLM,%MediaCategories%\%Render5NameGUID%,Display,1,00,00,00,00
-HKLM,%MediaCategories%\%Capture5NameGUID%,Name,,%Capture5Name%
-HKLM,%MediaCategories%\%Capture5NameGUID%,Display,1,00,00,00,00
-HKLM,%MediaCategories%\%Render6NameGUID%,Name,,%Render6Name%
-HKLM,%MediaCategories%\%Render6NameGUID%,Display,1,00,00,00,00
-HKLM,%MediaCategories%\%Capture6NameGUID%,Name,,%Capture6Name%
-HKLM,%MediaCategories%\%Capture6NameGUID%,Display,1,00,00,00,00
+HKR,MediaCategories\%Render1NameGUID%,Name,,%Render1Name%
+HKR,MediaCategories\%Render1NameGUID%,Display,1,00,00,00,00
+HKR,MediaCategories\%Capture1NameGUID%,Name,,%Capture1Name%
+HKR,MediaCategories\%Capture1NameGUID%,Display,1,00,00,00,00
+HKR,MediaCategories\%Render2NameGUID%,Name,,%Render2Name%
+HKR,MediaCategories\%Render2NameGUID%,Display,1,00,00,00,00
+HKR,MediaCategories\%Capture2NameGUID%,Name,,%Capture2Name%
+HKR,MediaCategories\%Capture2NameGUID%,Display,1,00,00,00,00
+HKR,MediaCategories\%Render3NameGUID%,Name,,%Render3Name%
+HKR,MediaCategories\%Render3NameGUID%,Display,1,00,00,00,00
+HKR,MediaCategories\%Capture3NameGUID%,Name,,%Capture3Name%
+HKR,MediaCategories\%Capture3NameGUID%,Display,1,00,00,00,00
+HKR,MediaCategories\%Render4NameGUID%,Name,,%Render4Name%
+HKR,MediaCategories\%Render4NameGUID%,Display,1,00,00,00,00
+HKR,MediaCategories\%Capture4NameGUID%,Name,,%Capture4Name%
+HKR,MediaCategories\%Capture4NameGUID%,Display,1,00,00,00,00
+HKR,MediaCategories\%Render5NameGUID%,Name,,%Render5Name%
+HKR,MediaCategories\%Render5NameGUID%,Display,1,00,00,00,00
+HKR,MediaCategories\%Capture5NameGUID%,Name,,%Capture5Name%
+HKR,MediaCategories\%Capture5NameGUID%,Display,1,00,00,00,00
+HKR,MediaCategories\%Render6NameGUID%,Name,,%Render6Name%
+HKR,MediaCategories\%Render6NameGUID%,Display,1,00,00,00,00
+HKR,MediaCategories\%Capture6NameGUID%,Name,,%Capture6Name%
+HKR,MediaCategories\%Capture6NameGUID%,Display,1,00,00,00,00
 
 ;======================================================
 ; render interfaces: cable 1
@@ -477,8 +479,6 @@ Capture3NameGUID="{CA8CFC11-7DE1-41FC-AC40-11ECC9191B15}"
 Capture4NameGUID="{4E018CCC-EC32-49AB-843E-0B232149A3A7}"
 Capture5NameGUID="{A58DFA00-A898-470B-B08F-587042CE0943}"
 Capture6NameGUID="{CD00E8E1-AA6E-42D7-894A-7E8E9568AC9A}"
-
-MediaCategories = "SYSTEM\CurrentControlSet\Control\MediaCategories"
 
 Proxy.CLSID="{17CCA71B-ECD7-11D0-B908-00A0C9223196}"
 KSCATEGORY_AUDIO="{6994AD04-93EF-11D0-A3CC-00A0C9223196}"

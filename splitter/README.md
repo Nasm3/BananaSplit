@@ -65,7 +65,7 @@ capture endpoint for each cable.
   float. NaN and infinity become silence.
 - **Copy-protected content:** it plays as silence. The driver doesn't claim
   DRM support.
-- **Names:** the INF writes each endpoint's name under the name GUID of its
+- **Names:** the INF writes each endpoint's name, in the device's own registry key, under the name GUID of its
   topology connector pin (`MediaCategories`). Those GUIDs are in
   `Source/Inc/endpoints.h`.
 
