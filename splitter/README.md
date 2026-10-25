@@ -52,8 +52,9 @@ capture endpoint for each cable.
   use different sample formats. Each ring holds 0.68 s.
   (`Source/Utilities/cablering.*`)
 - **Clock:** both halves are clocked by the performance counter at exactly
-  48 kHz, so they never drift apart. The reader keeps a 20 ms margin behind
-  the writer, which covers the two streams' timer jitter.
+  48 kHz, so they never drift apart. Both move the cable on the driver's
+  1 ms timer, whatever packet size their apps use, and the reader keeps a
+  20 ms margin behind the writer, which covers the timer jitter.
   - The cable's latency is about 30 ms.
   - If nothing plays into a cable, it records silence.
   - If the recorder falls far behind, it skips ahead rather than playing

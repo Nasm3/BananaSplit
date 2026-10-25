@@ -12,6 +12,7 @@
 #include <cmath>
 #include <limits>
 #include <vector>
+#include <algorithm>
 
 typedef uint32_t ULONG;
 typedef uint64_t ULONGLONG;
@@ -104,7 +105,7 @@ static void test_waits_for_margin_then_plays_in_order() {
     }
 }
 
-static void test_jitter_within_margin_never_drops_or_repeats() {
+static void jitter_run(ULONG period_ms, ULONG jitter_ms, int ticks) {
     // Both halves move with the same clock (48 frames per ms, from the
     // performance counter) but their timers fire at different moments:
     // each 10 ms tick runs up to 4 ms late, independently for writer and
@@ -114,13 +115,15 @@ static void test_jitter_within_margin_never_drops_or_repeats() {
     Ring r;
     std::vector<float> w, out;
     ULONGLONG written = 0, read = 0;
+    ULONG tw = 0, tr = 0;
     float expect = 1.0f;
     bool started = false;
     unsigned seed = 12345;
-    auto rnd = [&]() { seed = seed * 1103515245u + 12345u; return (seed >> 16) % 5; };
-    for (int k = 1; k < 20000; k++) {
-        ULONG tw = 10 * k + rnd();          // ms at which the writer runs
-        ULONG tr = 10 * k + rnd();          // ms at which the reader runs
+    auto rnd = [&]() { seed = seed * 1103515245u + 12345u; return (seed >> 16) % (jitter_ms + 1); };
+    for (int k = 1; k < ticks; k++) {
+        // ms at which writer and reader run (late, never going back)
+        tw = std::max(tw, (ULONG)(period_ms * k + rnd()));
+        tr = std::max(tr, (ULONG)(period_ms * k + rnd()));
         auto doWrite = [&]() {
             ULONG n = (ULONG)(48ull * tw - written);
             ramp(w, written, n); r.push(w.data(), n); written += n;
@@ -144,7 +147,15 @@ static void test_jitter_within_margin_never_drops_or_repeats() {
         if (failures) return;
     }
     CHECK(started);
-    CHECK(expect > 1.0e6f);
+    CHECK(expect > 48.0f * period_ms * ticks / 2);
+}
+
+static void test_jitter_within_margin_never_drops_or_repeats() {
+    // 10 ms packets whose timers run up to 4 ms late
+    jitter_run(10, 4, 20000);
+    // the driver's 1 ms timer (it moves the cable on every tick, whatever
+    // the clients' packet size), up to 5 ms late
+    jitter_run(1, 5, 200000);
 }
 
 static void test_writer_stops_reader_runs_dry_then_rewaits() {

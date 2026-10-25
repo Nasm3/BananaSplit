@@ -440,6 +440,14 @@ impl Graph {
                         if !idx.contains(&i) {
                             idx.push(i);
                             shown.push(route::short_name(&d.name).to_string());
+                            if let (true, Some((n, route::SplitterEnd::Input))) =
+                                (row.starts_with("bus "), route::splitter_cable(&d.name))
+                            {
+                                errs.push(format!(
+                                    "{row} plays into Splitter {n}, which strip {n} records: route strip {n} away from {} or it feeds back",
+                                    &row[4..]
+                                ));
+                            }
                             if route::is_cable(&d.name) {
                                 cables.insert(
                                     route::short_name(&d.name)

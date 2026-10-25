@@ -60,7 +60,14 @@ pub fn splitter_cable(name: &str) -> Option<(usize, SplitterEnd)> {
     if !is_splitter(name) {
         return None;
     }
-    let endpoint = short_name(name).trim().to_ascii_lowercase();
+    let mut endpoint = short_name(name).trim().to_ascii_lowercase();
+    // Windows numbers endpoints whose names clash, e.g. after a reinstall
+    // left an old device behind: "2- Splitter 1 (Splitter Virtual Cables)".
+    if let Some(dash) = endpoint.find("- ") {
+        if dash > 0 && endpoint[..dash].bytes().all(|b| b.is_ascii_digit()) {
+            endpoint = endpoint[dash + 2..].to_string();
+        }
+    }
     let rest = endpoint.strip_prefix("splitter ")?;
     let (num, end) = match rest.strip_suffix(" output") {
         Some(num) => (num, SplitterEnd::Output),
@@ -252,6 +259,11 @@ mod tests {
         assert_eq!(splitter_cable("Splitter 7 (Splitter Virtual Cables)"), None);
         assert_eq!(splitter_cable("Splitter 0 Output (Splitter Virtual Cables)"), None);
         assert_eq!(splitter_cable("Splitter 1x (Splitter Virtual Cables)"), None);
+        // Windows' prefix for clashing names doesn't hide the number
+        assert_eq!(
+            splitter_cable("2- Splitter 5 Output (Splitter Virtual Cables)"),
+            Some((5, SplitterEnd::Output))
+        );
         // renamed in the sound settings: still a Splitter endpoint, no number
         assert!(is_splitter("Discord out (Splitter Virtual Cables)"));
         assert_eq!(splitter_cable("Discord out (Splitter Virtual Cables)"), None);

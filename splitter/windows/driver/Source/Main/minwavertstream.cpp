@@ -415,7 +415,7 @@ NTSTATUS CMiniportWaveRTStream::AllocateBufferWithNotification
     m_pDmaBuffer = (BYTE*)m_pPortStream->MapAllocatedPages(pBufferMdl, MmCached);
     m_ulNotificationsPerBuffer = NotificationCount_;
     m_ulDmaBufferSize = RequestedSize_;
-    ulBufferDurationMs = (RequestedSize_ * 1000) / m_ulDmaMovementRate;
+    ulBufferDurationMs = (ULONG)(((ULONGLONG)RequestedSize_ * 1000) / m_ulDmaMovementRate);
     m_ulNotificationIntervalMs = ulBufferDurationMs / NotificationCount_;
 
     *AudioBufferMdl_ = pBufferMdl;
@@ -1211,8 +1211,11 @@ VOID CMiniportWaveRTStream::UpdatePosition
     //
     // need to divide by 1000 because m_ulDmaMovementRate is average bytes per sec.
 
-    ULONG ByteDisplacement = ((m_ulDmaMovementRate * TimeElapsedInMS) + m_byteDisplacementCarryForward) / 1000 ;
-    m_byteDisplacementCarryForward = ((m_ulDmaMovementRate * TimeElapsedInMS) + m_byteDisplacementCarryForward) % 1000;
+    // In 64 bits: rate * ms overflows 32 bits after ~11 s at 32-bit float
+    // stereo, which a stream polled rarely can reach.
+    ULONGLONG ullBytesTimesThousand = ((ULONGLONG)m_ulDmaMovementRate * TimeElapsedInMS) + m_byteDisplacementCarryForward;
+    ULONG ByteDisplacement = (ULONG)(ullBytesTimesThousand / 1000);
+    m_byteDisplacementCarryForward = (ULONG)(ullBytesTimesThousand % 1000);
 
     // Increment presentation position even after last buffer is rendered.
     m_ullPresentationPosition += ByteDisplacement;
@@ -1478,12 +1481,16 @@ TimerNotifyRT
         bufferCompleted = TRUE;
     }
 
+    // Splitter: move the position (and so the cable's audio) on every 1 ms
+    // tick, not only once per packet: then both halves of a cable move in
+    // 1 ms steps whatever packet sizes their clients use, and the ring's
+    // 20 ms margin covers them (cablerule.h).
+    _this->UpdatePosition(qpc);
+
     if (!bufferCompleted && !_this->m_bEoSReceived)
     {
         goto End;
     }
-
-    _this->UpdatePosition(qpc);
 
     if (!_this->m_bEoSReceived)
     {
