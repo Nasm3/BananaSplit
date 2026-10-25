@@ -8,7 +8,7 @@ The mixer core is shared with the [Linux app](../linux/README.md). See that manu
 
 - Windows 10 or 11, x64
 - [Microsoft Edge WebView2 Runtime](https://developer.microsoft.com/microsoft-edge/webview2/)
-- Optional: [VB-Audio CABLE](https://vb-audio.com/Cable/) pairs (CABLE, CABLE-A … CABLE-D) for per-channel virtual cables
+- Optional: [Splitter](../splitter/README.md), BananaSplit's own six numbered cables (Splitter 1 … 6, one per input strip), and/or [VB-Audio CABLE](https://vb-audio.com/Cable/) pairs (CABLE, CABLE-A … CABLE-D) for per-channel virtual cables
 
 ## Running
 
@@ -69,7 +69,12 @@ From the app menu:
 
 ## Virtual cables
 
-Per-channel virtual cables require genuine VB-Audio cable pairs. Each installed pair is assigned to at most one channel, strips first, then buses. Without any pairs, cables are unavailable.
+Per-channel virtual cables come from two drivers:
+
+- **Splitter** (BananaSplit's own, [`splitter/`](../splitter/README.md), installed separately). Cable N belongs to input strip N: apps play into `Splitter N`, and strip N records `Splitter N Output`. The numbers never move, so switching one strip's cable off leaves the others alone. The channel menu shows `Splitter N` for each strip.
+- **VB-Audio** cable pairs. They cover the strips Splitter doesn't (none, if Splitter is installed), in strip order, and then the buses: a bus cable is how B1/B2 become a microphone in other apps, which Splitter doesn't do. Each pair is used by at most one channel.
+
+Without either, cables are unavailable. `@default` never follows Windows into a cable of either kind, because BananaSplit would then record itself.
 
 Windows has no per-app stream routing like PipeWire, so device lists show WASAPI endpoints only.
 
