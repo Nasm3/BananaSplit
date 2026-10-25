@@ -1,0 +1,5 @@
+dist/
+driver/packages/
+driver/**/x64/
+driver/x64/
+driver/**/*.user

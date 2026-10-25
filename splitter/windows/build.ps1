@@ -63,15 +63,32 @@ if ($rc -notmatch "SPLITTER_VERSION_STR\s+""$([regex]::Escape($v4))""") { throw 
 if ($props -notmatch "<TimeStamp>$([regex]::Escape($v4))</TimeStamp>") { throw "Directory.Build.props TimeStamp is not $v4" }
 
 # 2. Build
+$logs = Join-Path $here 'dist\logs'
+New-Item -ItemType Directory -Path $logs -Force | Out-Null
+$errLog = Join-Path $logs 'msbuild-errors.log'
+$warnLog = Join-Path $logs 'msbuild-warnings.log'
 $msbuildArgs = @(
     (Join-Path $driverDir 'Splitter.sln'),
     '-t:rebuild', '-m',
     '-p:Configuration=Release', '-p:Platform=x64',
     '-p:SignMode=Off',
-    '-warnaserror', '-nologo', '-clp:Verbosity=minimal'
+    '-warnaserror', '-nologo', '-clp:Verbosity=minimal',
+    "-flp1:errorsonly;logfile=$errLog", "-flp2:warningsonly;logfile=$warnLog"
 )
 & msbuild @msbuildArgs
-if ($LASTEXITCODE -ne 0) { throw "msbuild failed ($LASTEXITCODE)" }
+if ($LASTEXITCODE -ne 0) {
+    # In CI, each error becomes an annotation (the raw log may not be
+    # readable from where the run is followed).
+    if ($env:GITHUB_ACTIONS) {
+        foreach ($f in $errLog, $warnLog) {
+            if (Test-Path $f) {
+                Get-Content $f | Where-Object { $_.Trim() } | Select-Object -Unique -First 25 |
+                    ForEach-Object { Write-Output "::error::$($_.Trim())" }
+            }
+        }
+    }
+    throw "msbuild failed ($LASTEXITCODE)"
+}
 
 $inf = Get-ChildItem -Path $driverDir -Recurse -Filter 'splitter.inf' |
     Where-Object { $_.FullName -match '\\Release\\' -and $_.FullName -notmatch '\\packages\\' } |
