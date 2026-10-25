@@ -37,6 +37,8 @@ jobs:
           }
 
       - uses: microsoft/setup-msbuild@v2
+        with:
+          msbuild-architecture: x64
 
       - name: Build, check, test-sign and package
         shell: pwsh

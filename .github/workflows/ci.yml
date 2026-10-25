@@ -177,6 +177,8 @@ jobs:
       - uses: actions/checkout@v4
 
       - uses: microsoft/setup-msbuild@v2
+        with:
+          msbuild-architecture: x64
 
       - name: Build, check, test-sign and package
         shell: pwsh
