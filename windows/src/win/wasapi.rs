@@ -440,7 +440,7 @@ impl Graph {
                         if !idx.contains(&i) {
                             idx.push(i);
                             shown.push(route::short_name(&d.name).to_string());
-                            if route::is_vb_cable(&d.name) {
+                            if route::is_cable(&d.name) {
                                 cables.insert(
                                     route::short_name(&d.name)
                                         .replace(" Input", "")

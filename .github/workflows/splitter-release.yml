@@ -1,0 +1,88 @@
+name: Splitter release
+
+# Splitter is released on its own: a tag splitter-v<version> (the version in
+# splitter/VERSION) builds the Windows driver package and publishes it as a
+# release of its own, apart from BananaSplit's releases.
+on:
+  push:
+    tags: ['splitter-v*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing tag to build and publish, e.g. splitter-v0.1.0
+        required: true
+
+permissions:
+  contents: read
+
+env:
+  TAG: ${{ inputs.tag || github.ref_name }}
+
+jobs:
+  windows:
+    name: Splitter for Windows
+    runs-on: windows-2025-vs2026
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG }}
+
+      - name: Check tag matches splitter/VERSION
+        shell: pwsh
+        run: |
+          $version = (Get-Content splitter/VERSION -Raw).Trim()
+          if ("splitter-v$version" -ne $env:TAG) {
+            Write-Output "::error::Tag $env:TAG does not match splitter/VERSION $version (splitter-v$version)"
+            exit 1
+          }
+
+      - uses: microsoft/setup-msbuild@v2
+
+      - name: Build, check, test-sign and package
+        shell: pwsh
+        run: |
+          try {
+            ./splitter/windows/build.ps1
+          } catch {
+            Write-Output "::error::Splitter build: $($_.Exception.Message)"
+            throw
+          }
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: splitter-release-windows
+          path: splitter/windows/dist/*.zip
+          if-no-files-found: error
+
+  publish:
+    name: Publish Splitter release
+    needs: windows
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: splitter-release-windows
+          path: dist
+
+      - name: Write checksums
+        working-directory: dist
+        run: sha256sum * > SHA256SUMS.txt && cat SHA256SUMS.txt
+
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          # Test-signed builds go out as pre-releases (see splitter/README.md,
+          # "Signing").
+          if gh release view "$TAG" > /dev/null 2>&1; then
+            gh release upload "$TAG" dist/* --clobber
+          else
+            gh release create "$TAG" dist/* \
+              --title "Splitter ${TAG#splitter-v} (test-signed)" \
+              --notes "Six numbered virtual audio cables for BananaSplit (Splitter 1 to 6). This build is test-signed: it installs only on a PC in test-signing mode. See README.txt in the zip." \
+              --prerelease \
+              --verify-tag
+          fi

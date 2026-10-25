@@ -203,16 +203,17 @@ pub fn open_page(url: &str) -> Result<(), String> {
 /// offer the download page (they are optional).
 pub fn cable_prompt() {
     let text = format!(
-        "Welcome to BananaSplit.\n\nFor virtual inputs and outputs (one per channel, for apps like \
-         Discord or OBS), BananaSplit uses the free VB-Audio virtual cables (CABLE, CABLE-A … CABLE-D). \
-         None is installed yet. Everything else works without them.\n\n\
-         Open the VB-Audio download page?"
+        "Welcome to BananaSplit.\n\nFor virtual inputs (apps like Discord or OBS playing into a \
+         strip), BananaSplit uses virtual cables: Splitter, its own (Splitter 1 to 6, one per \
+         input strip), or the free VB-Audio cables. None is installed yet. Everything else works \
+         without them.\n\n\
+         Open the Splitter download page?"
     );
     let (cap, t) = (wide("BananaSplit"), wide(&text));
     // SAFETY: NUL-terminated UTF-16 strings.
     let answer = unsafe { MessageBoxW(std::ptr::null_mut(), t.as_ptr(), cap.as_ptr(), MB_YESNO | MB_ICONINFORMATION | MB_SETFOREGROUND) };
     if answer == IDYES {
-        open_url(crate::win::cables::VBCABLE_PAGE);
+        open_url(crate::win::route::SPLITTER_PAGE);
     }
 }
 

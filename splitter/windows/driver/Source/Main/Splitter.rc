@@ -1,0 +1,43 @@
+/*++
+
+Splitter: version information of splitter.sys.
+
+Copyright (c) the BananaSplit authors. MIT licence (see splitter/LICENSE).
+Keep SPLITTER_VERSION_* in step with DriverVer in Splitter.inx and with
+splitter/VERSION.
+
+--*/
+
+#include <windows.h>
+
+#define SPLITTER_VERSION_BIN        0,1,0,0
+#define SPLITTER_VERSION_STR        "0.1.0.0"
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION    SPLITTER_VERSION_BIN
+ PRODUCTVERSION SPLITTER_VERSION_BIN
+ FILEFLAGSMASK  VS_FFI_FILEFLAGSMASK
+ FILEFLAGS      0
+ FILEOS         VOS_NT_WINDOWS32
+ FILETYPE       VFT_DRV
+ FILESUBTYPE    VFT2_DRV_SOUND
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904B0"
+        BEGIN
+            VALUE "CompanyName",      "BananaSplit"
+            VALUE "FileDescription",  "Splitter virtual audio cables for BananaSplit"
+            VALUE "FileVersion",      SPLITTER_VERSION_STR
+            VALUE "InternalName",     "splitter.sys"
+            VALUE "LegalCopyright",   "MIT licence; parts (c) Microsoft Corporation, MS-PL"
+            VALUE "OriginalFilename", "splitter.sys"
+            VALUE "ProductName",      "Splitter"
+            VALUE "ProductVersion",   SPLITTER_VERSION_STR
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1200
+    END
+END
