@@ -53,6 +53,15 @@ try {
 } finally { Pop-Location }
 $packages = Join-Path $driverDir 'packages'
 
+# The WDK targets start stampinf (and other WDK tools) by name, so put the
+# NuGet package's tool folder on PATH. Prefer the x64 host tools.
+$stampinf = Get-ChildItem -Path $packages -Recurse -Filter 'stampinf.exe' -ErrorAction SilentlyContinue |
+    Sort-Object @{ Expression = { $_.FullName -match '\\x64\\' }; Descending = $true }, FullName |
+    Select-Object -First 1
+if (-not $stampinf) { throw "stampinf.exe is not in the WDK NuGet packages under $packages" }
+Write-Host "WDK tools: $($stampinf.Directory.FullName)"
+$env:PATH = "$($stampinf.Directory.FullName);$env:PATH"
+
 # Driver versions must match everywhere they are written.
 $inx = Get-Content (Join-Path $driverDir 'Source\Main\Splitter.inx') -Raw
 $rc = Get-Content (Join-Path $driverDir 'Source\Main\Splitter.rc') -Raw
