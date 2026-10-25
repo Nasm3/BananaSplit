@@ -184,3 +184,14 @@ if (Test-Path $zip) { Remove-Item $zip -Force }
 Compress-Archive -Path $out -DestinationPath $zip
 Write-Host "Package: $zip"
 Get-ChildItem $out -Recurse | ForEach-Object { Write-Host "  $($_.FullName.Substring($out.Length + 1))" }
+
+# In CI, the package's contents and driver version as notices, so they can
+# be checked from the run's summary.
+if ($env:GITHUB_ACTIONS) {
+    $files = (Get-ChildItem $out -Recurse -File | ForEach-Object {
+        "$($_.FullName.Substring($out.Length + 1)) ($($_.Length) B)" }) -join ', '
+    Write-Output "::notice::Splitter package $name.zip: $files"
+    $drv = Get-Content (Join-Path $out 'driver\splitter.inf') | Select-String -Pattern '^\s*DriverVer' | Select-Object -First 1
+    $sig = Get-AuthenticodeSignature (Join-Path $out 'driver\splitter.cat')
+    Write-Output "::notice::splitter.inf $($drv.Line.Trim()); splitter.cat signature: $($sig.Status) by $($sig.SignerCertificate.Subject)"
+}
